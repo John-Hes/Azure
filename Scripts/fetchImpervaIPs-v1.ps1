@@ -1,3 +1,6 @@
+#Imperva site with documentation
+#https://docs-cybersec.thalesgroup.com/bundle/z-kb-articles-knowledgebase-support/page/290228110.html
+
 #Select the NSG
 $subscriptionName = 'subname'
 $rg = 'resourcegroup'
