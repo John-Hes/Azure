@@ -1,0 +1,156 @@
+{
+  "properties": {
+    "displayName": "Subscription Cost Anomaly",
+    "policyType": "Custom",
+    "mode": "All",
+    "description": "This is a custom policy to enforce cost anomaly alerts on every subscription.\nThe default name of the cost anomaly for each subscription is subscription name Cost Anomaly.\nWe want the Budget Admins distribution group to recieve emails about anomalies for each subscription.",
+    "version": "1.0.0",
+    "parameters": {
+      "effect": {
+        "type": "String",
+        "metadata": {
+          "displayName": "effect",
+          "description": "Enable or disable the execution of the policy"
+        },
+        "allowedValues": [
+          "DeployIfNotExists",
+          "AuditIfNotExists",
+          "Disabled"
+        ],
+        "defaultValue": "DeployIfNotExists"
+      },
+      "frequency": {
+        "type": "String",
+        "metadata": {
+          "displayName": "Frequency of Alerts",
+          "description": "'Daily' or 'Weekly' frequency for anomaly alerts."
+        },
+        "allowedValues": [
+          "Daily",
+          "Weekly"
+        ],
+        "defaultValue": "Daily"
+      },
+      "startTime": {
+        "type": "String",
+        "metadata": {
+          "displayName": "startTime",
+          "description": null
+        },
+        "defaultValue": "[utcNow('yyyy-MM-ddTHH:mm:ssZ')]"
+      },
+      "contactEmails": {
+        "type": "Array",
+        "metadata": {
+          "displayName": "contactEmails",
+          "description": "The list of email addresses, in an array, to send the notification."
+        },
+        "defaultValue": [
+          "BudgetAdmins@email.com"
+        ]
+      }
+    },
+    "policyRule": {
+      "if": {
+        "allOf": [
+          {
+            "field": "type",
+            "equals": "Microsoft.Resources/subscriptions"
+          }
+        ]
+      },
+      "then": {
+        "effect": "[parameters('effect')]",
+        "details": {
+          "type": "Microsoft.CostManagement/scheduledActions",
+          "deploymentScope": "subscription",
+          "existenceScope": "subscription",
+          "existenceCondition": {
+            "allOf": [
+              {
+                "field": "Microsoft.CostManagement/scheduledActions/displayName",
+                "equals": "[concat(subscription().displayName,' Cost Anomaly')]"
+              },
+              {
+                "field": "kind",
+                "equals": "InsightAlert"
+              },
+              {
+                "field": "Microsoft.CostManagement/scheduledActions/status",
+                "equals": "Enabled"
+              }
+            ]
+          },
+          "roleDefinitionIds": [
+            "/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635"
+          ],
+          "deployment": {
+            "location": "eastus2",
+            "properties": {
+              "mode": "Incremental",
+              "parameters": {
+                "frequency": {
+                  "value": "[parameters('frequency')]"
+                },
+                "contactEmails": {
+                  "value": "[parameters('contactEmails')]"
+                },
+                "startTime": {
+                  "value": "[parameters('startTime')]"
+                }
+              },
+              "template": {
+                "$schema": "http://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json",
+                "contentVersion": "1.0.0.0",
+                "parameters": {
+                  "frequency": {
+                    "type": "String"
+                  },
+                  "contactEmails": {
+                    "type": "Array"
+                  },
+                  "startTime": {
+                    "type": "String"
+                  }
+                },
+                "resources": [
+                  {
+                    "type": "Microsoft.CostManagement/scheduledActions",
+                    "apiVersion": "2022-10-01",
+                    "name": "AnomalyAlert",
+                    "kind": "InsightAlert",
+                    "properties": {
+                      "displayName": "[concat(subscription().displayName,' Cost Anomaly')]",
+                      "fileDestination": {
+                        "fileFormats": []
+                      },
+                      "notification": {
+                        "language": "en",
+                        "message": "",
+                        "regionalFormat": "en-US",
+                        "subject": "[concat(subscription().displayName,' Cost Anomaly')]",
+                        "to": "[parameters('contactEmails')]"
+                      },
+                      "notificationEmail": "BudgetAdmins@email.com",
+                      "schedule": {
+                        "frequency": "[parameters('frequency')]",
+                        "hourOfDay": 12,
+                        "startDate": "2025-04-12T05:00:00Z",
+                        "endDate": "2030-01-12T05:00:00Z"
+                      },
+                      "scope": "[subscription().id]",
+                      "status": "Enabled",
+                      "viewId": "[concat(subscription().id,'/providers/Microsoft.CostManagement/views/ms:DailyAnomalyByResourceGroup')]"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "versions": [
+      "1.0.0"
+    ]
+  }
