@@ -1,0 +1,135 @@
+#Under Microsoft Defender for Cloud - Environment settings
+#	select a subscription - email notifications tab
+#	Policy can configure the all users with the following roles and
+#	additional email addresses assigned to a standard email
+
+{
+  "properties": {
+    "displayName": "Subscription Defender email notifications",
+    "policyType": "Custom",
+    "mode": "All",
+    "description": "Configuring the Defender for Cloud email notifications under environment settings.",
+    "metadata": {
+      "category": "Security Center",
+    },
+    "version": "1.0.0",
+    "parameters": {
+      "effect": {
+        "type": "String",
+        "metadata": {
+          "displayName": "Effect",
+          "description": "Enable or disable the execution of the policy"
+        },
+        "allowedValues": [
+          "AuditIfNotExists",
+          "DeployIfNotExists",
+          "Disabled"
+        ],
+        "defaultValue": "DeployIfNotExists"
+      },
+      "recipients": {
+        "type": "String",
+        "metadata": {
+          "displayName": "Recipients",
+          "description": "Receives alerts"
+        },
+        "defaultValue": "security@email.com"
+      },
+      "phoneNumber": {
+        "type": "String",
+        "metadata": {
+          "displayName": "Phone number recipients",
+          "description": "Receives alerts"
+        }
+      }
+    },
+    "policyRule": {
+      "if": {
+        "field": "type",
+        "equals": "Microsoft.Resources/subscriptions"
+      },
+      "then": {
+        "effect": "[parameters('effect')]",
+        "details": {
+          "type": "Microsoft.Security/securityContacts",
+          "name": "default",
+          "deploymentScope": "subscription",
+          "existenceScope": "subscription",
+          "roleDefinitionIds": [
+            "/providers/Microsoft.Authorization/roleDefinitions/8e3af657-a8ff-443c-a75c-2fe8c4bcb635"
+          ],
+          "existenceCondition": {
+            "allOf": [
+              {
+                "field": "Microsoft.Security/securityContacts/isEnabled",
+                "equals": "true"
+              },
+              {
+                "field": "Microsoft.Security/securityContacts/emails",
+                "equals": "security@email.com"
+              },
+              {
+                "field": "Microsoft.Security/securityContacts/phone",
+                "equals": "555-555-5555"
+              }
+            ]
+          },
+          "deployment": {
+            "location": "eastus",
+            "properties": {
+              "mode": "incremental",
+              "parameters": {
+                "recipients": {
+                  "value": "[parameters('recipients')]"
+                },
+                "phoneNumber": {
+                  "value": "[parameters('phoneNumber')]"
+                }
+              },
+              "template": {
+                "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+                "contentVersion": "1.0.0.0",
+                "parameters": {
+                  "recipients": {
+                    "type": "String"
+                  },
+                  "phoneNumber": {
+                    "type": "String"
+                  }
+                },
+                "resources": [
+                  {
+                    "type": "Microsoft.Security/securityContacts",
+                    "apiVersion": "2023-12-01-preview",
+                    "name": "default",
+                    "location": "East US",
+                    "properties": {
+                      "emails": "[parameters('recipients')]",
+                      "isEnabled": true,
+                      "notificationsByRole": {
+                        "roles": [
+                          "Owner"
+                        ],
+                        "state": "On"
+                      },
+                      "notificationsSources": [
+                        {
+                          "minimalSeverity": "High",
+                          "sourceType": "Alert"
+                        }
+                      ],
+                      "phone": "[parameters('phoneNumber')]"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "versions": [
+      "1.0.0"
+    ]
+  }
+}
