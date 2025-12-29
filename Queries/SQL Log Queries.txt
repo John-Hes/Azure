@@ -1,0 +1,27 @@
+Some common queries I use to get information from SQL logs.  These are diagnostic settings or audit logs sent to a log analytics workspace
+
+-Review logs for a specific DB and limit output to 100 lines
+AzureDiagnostics 
+  | where ResourceId == '/SUBSCRIPTIONS/<your subs ID>/RESOURCEGROUPS/<your rsrc grp>/PROVIDERS/MICROSOFT.SQL/SERVERS/<YOURSERVERNAME>/DATABASES/<YOURDBNAME>' 
+  | project event_time_t, statement_s, succeeded_s, affected_rows_d, server_principal_name_s, client_ip_s, application_name_s, additional_information_s, data_sensitivity_information_s
+  | order by event_time_t desc
+  | take 100
+
+-filtered query ignoring specific details like client IP
+AzureDiagnostics
+| project event_time_t, statement_s, succeeded_s, affected_rows_d, client_ip_s, session_server_principal_name_s, database_principal_name_s, database_name_s, object_name_s, additional_information_s, application_name_s, host_name_s, client_tls_version_name_s, data_sensitivity_information_s
+| where client_ip_s !in ('255.255.255.255', '0.0.0.0')
+
+-Output in local time, limit a certain app that is connecting, sort by the time, summarize and only show the unique client IP values
+AzureDiagnostics
+| extend EasternTime = datetime_utc_to_local(TimeGenerated, "US/Eastern")
+| where application_name_s contains "PowerBIPremium"
+| order by event_time_t desc
+| summarize arg_max(event_time_t, statement_s, succeeded_s, affected_rows_d, client_ip_s, host_name_s, session_server_principal_name_s, database_principal_name_s, database_name_s, object_name_s, additional_information_s, application_name_s, client_tls_version_name_s, data_sensitivity_information_s) by client_ip_s
+
+-Specifc example where I am searching for powerbi connections, ignoring the on prem servers
+AzureDiagnostics
+| extend EasternTime = datetime_utc_to_local(TimeGenerated, "US/Eastern")
+| where application_name_s contains "Mashup Engine"
+| where host_name_s !in ('powerbi3', 'powerbi2','powerbi1')
+| project EasternTime, succeeded_s, host_name_s, client_ip_s, server_principal_name_s, statement_s, database_name_s, application_name_s, action_name_s, Category, Type, Resource, session_server_principal_name_s, ResourceProvider, LogicalServerName_s, _ResourceId
