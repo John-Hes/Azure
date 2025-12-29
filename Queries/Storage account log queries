@@ -1,0 +1,17 @@
+-Viewing diagnostic logs
+StorageBlobLogs
+| project TimeGenerated, AccountName, CallerIpAddress, UserAgentHeader, Location, Protocol, OperationName, AuthenticationType, StatusCode, StatusText, DurationMs, Uri, ServiceType, TlsVersion, Category, SourceSystem, Type, _ResourceId
+
+
+-query recent reading of blobs
+StorageBlobLogs
+| where OperationName  == "GetBlob"
+| extend ContainerName = split(parse_url(Uri).Path, "/")[1]
+| summarize ReadSize = sum(ResponseBodySize), ReadCount = count() by tostring(ContainerName)
+
+
+-investigating errors
+StorageBlobLogs
+| where MetricResponseType has "ClientOtherError"
+| project TimeGenerated, AccountName, StatusCode, StatusText, OperationName, CallerIpAddress, AuthenticationType, Uri, ClientRequestId, ObjectKey, Category, MetricResponseType
+| order by TimeGenerated desc
