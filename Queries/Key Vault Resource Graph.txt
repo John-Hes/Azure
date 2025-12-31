@@ -1,0 +1,48 @@
+Searching for softdelete, purge protection, and public access
+
+Resources
+| where type =~ 'microsoft.keyvault/vaults'
+| join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subName=name, subscriptionId) on subscriptionId
+| extend props = todynamic(properties)
+| extend
+    softDeleteEnabled   = tostring(props.enableSoftDelete),
+    purgeProtection     = tostring(props.enablePurgeProtection),
+    publicNetworkAccess = tostring(props.publicNetworkAccess),
+    networkDefaultAction = tostring(props.networkAcls.defaultAction),
+    privateEndpointConnections = props.privateEndpointConnections
+| extend
+    isSoftDeleteOn   = iif(softDeleteEnabled =~ "true", "Yes", "No"),
+    isPurgeProtOn    = iif(purgeProtection =~ "true", "Yes", "No"),
+    networkMode      = case(
+                          publicNetworkAccess =~ "Disabled", "Private only",
+                          publicNetworkAccess =~ "Enabled" and networkDefaultAction =~ "Deny", "Selected networks",
+                          "Public"
+                       ),
+    hasPrivateEndpoint = iif(isempty(privateEndpointConnections) or privateEndpointConnections == "[]", "No", "Yes")
+| project
+    subName,
+    resourceGroup,
+    name,
+    location,
+    isSoftDeleteOn,
+    isPurgeProtOn,
+    networkMode,
+    hasPrivateEndpoint
+
+
+Find key vaults without a setting enabled in a different format
+
+Resources
+| where type =~ 'microsoft.keyvault/vaults'
+| extend purgeEnabled = tostring(properties.enablePurgeProtection)
+| where purgeEnabled !~ 'true' or isempty(purgeEnabled)
+| join kind=leftouter (ResourceContainers | where type=='microsoft.resources/subscriptions' | project subName=name, subscriptionId) on subscriptionId
+| project
+    subName,
+    resourceGroup,
+    name,
+    location,
+    tostring(properties.enableSoftDelete),
+    tostring(properties.enablePurgeProtection),
+    tostring(properties.publicNetworkAccess),
+    properties.privateEndpointConnections
