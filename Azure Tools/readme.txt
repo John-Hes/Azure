@@ -23,3 +23,6 @@ Listing helpful Azure tools. I come across helpful code or apps others have crea
       https://github.com/MortenPedholt/Powershell/blob/master/Azure/RBAC%20Roles/Export-RoleAssignments.ps1
       Great script to review permissions assigned across your Azure environment
       
+6.  Azure Finops Toolkit
+      https://microsoft.github.io/finops-toolkit/?ref=techielass.com#-available-tools
+      Microsoft tool that has helpful workbooks and alerting
