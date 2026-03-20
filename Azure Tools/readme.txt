@@ -1,4 +1,4 @@
-Listing helpful Azure tools. I come across helpful code or apps others have created and would like to track them here.
+Listing helpful Azure tools. I come across useful code or apps others have created and would like to track them here.
 
 1.  Draw.io
       https://draw.io
@@ -26,3 +26,12 @@ Listing helpful Azure tools. I come across helpful code or apps others have crea
 6.  Azure Finops Toolkit
       https://microsoft.github.io/finops-toolkit/?ref=techielass.com#-available-tools
       Microsoft tool that has helpful workbooks and alerting
+
+7.  AzGovViz
+      Microsoft tool that can pull a lot of details about policy, MG hierarchy, permissions, etc.
+      It can be deployed in Azure to stay up to date or run manually with powershell
+      https://github.com/Azure/Azure-Governance-Visualizer-Accelerator
+      https://learn.microsoft.com/en-us/azure/architecture/landing-zones/azure-governance-visualizer-accelerator
+      https://github.com/JulianHayward/Azure-MG-Sub-Governance-Reporting/tree/master
+      .\AzGovVizParallel.ps1 -ManagementGroupId <your-Management-Group-Id>
+      
