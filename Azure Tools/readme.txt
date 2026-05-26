@@ -34,4 +34,8 @@ Listing helpful Azure tools. I come across useful code or apps others have creat
       https://learn.microsoft.com/en-us/azure/architecture/landing-zones/azure-governance-visualizer-accelerator
       https://github.com/JulianHayward/Azure-MG-Sub-Governance-Reporting/tree/master
       .\AzGovVizParallel.ps1 -ManagementGroupId <your-Management-Group-Id>
+
+8.  Azure Verified Modules
+      https://azure.github.io/Azure-Verified-Modules/
+      Microsoft supported and standard IaC modules
       
